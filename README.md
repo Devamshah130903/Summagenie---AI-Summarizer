@@ -17,9 +17,10 @@
 ---
 
 ## **Demo Screenshot**
+<img width="1919" height="1119" alt="Screenshot 2025-08-16 180908" src="https://github.com/user-attachments/assets/112ee8b2-a63e-4080-b074-d6fe750619a6" />
+<img width="1919" height="1117" alt="Screenshot 2025-08-16 180951" src="https://github.com/user-attachments/assets/1f283b45-fe66-4123-8de1-c2c09e707799" />
 
-![SummaGenie Screenshot](screenshot.png)  
-*(Replace with your actual screenshot if available)*
+
 
 ---
 
