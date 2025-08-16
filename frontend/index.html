@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SummaGenie - Smart Summarizer</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-color: #1e1e2e;
+      --secondary-color: #282a36;
+      --accent-color: #00adb5;
+      --accent-hover: #008b94;
+      --text-color: #eeeeee;
+      --text-muted: #a0a0a0;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --error-color: #dc3545;
+      --border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e1e2e);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--primary-color);
+      padding: 30px;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent-color);
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    select,
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--secondary-color);
+      color: var(--text-color);
+      font-size: 14px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    select:focus,
+    input[type="text"]:focus,
+    input[type="file"]:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.1);
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      cursor: pointer;
+      padding: 12px;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      font-size: 12px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+    .submit-btn:disabled {
+      background: #555;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .loading {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .output-section {
+      margin-top: 25px;
+      display: none;
+    }
+
+    .output-section.show {
+      display: block;
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--secondary-color);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .output-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .output-box {
+      padding: 20px;
+      background: var(--secondary-color);
+      border-radius: 8px;
+      border: 1px solid var(--accent-color);
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 8px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .action-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--secondary-color);
+      color: var(--text-color);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary:hover {
+      background: #3a3c4e;
+    }
+
+    .alert {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .alert.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(-100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .alert-success {
+      background: rgba(40, 167, 69, 0.1);
+      border: 1px solid var(--success-color);
+      color: var(--success-color);
+    }
+
+    .alert-warning {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid var(--warning-color);
+      color: var(--warning-color);
+    }
+
+    .alert-error {
+      background: rgba(220, 53, 69, 0.1);
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--secondary-color);
+      border-radius: 2px;
+      margin: 10px 0;
+      overflow: hidden;
+      display: none;
+    }
+
+    .progress-bar.show {
+      display: block;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent-color);
+      border-radius: 2px;
+      animation: progress 2s ease-in-out;
+    }
+
+    @keyframes progress {
+      0% { width: 0%; }
+      50% { width: 60%; }
+      100% { width: 100%; }
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      .title {
+        font-size: 20px;
+      }
+
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Custom scrollbar */
+    .output-box::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .output-box::-webkit-scrollbar-track {
+      background: var(--primary-color);
+      border-radius: 3px;
+    }
+
+    .output-box::-webkit-scrollbar-thumb {
+      background: var(--accent-color);
+      border-radius: 3px;
+    }
+
+    .output-box::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-hover);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 class="title">✨ SummaGenie</h1>
+      <p class="subtitle">Smart AI-powered text summarization</p>
+    </div>
+
+    <!-- Alert messages -->
+    <div id="alert" class="alert"></div>
+
+    <!-- Progress bar -->
+    <div id="progress" class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+
+    <form id="summaryForm">
+      <div class="form-group">
+        <label class="form-label" for="input-type">
+          <i class="fas fa-list"></i> Choose Input Type
+        </label>
+        <select id="input-type">
+          <option value="file">📂 Upload File (PDF, DOCX, TXT)</option>
+          <option value="youtube">📹 YouTube Video Link</option>
+          <option value="website">🌍 Website/News Article</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <div id="input-field"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="summary-length">
+          <i class="fas fa-ruler"></i> Summary Length
+        </label>
+        <select id="summary-length">
+          <option value="short">Short (~100 words)</option>
+          <option value="medium" selected>Medium (~200 words)</option>
+          <option value="long">Long (~400 words)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">
+        <i class="fas fa-magic"></i>
+        Generate Summary
+      </button>
+    </form>
+
+    <!-- Output section -->
+    <div id="output-section" class="output-section">
+      <div id="stats-container" class="stats-container"></div>
+      
+      <div class="output-container">
+        <div id="summary-output" class="output-box">
+          Your summarized content will appear here...
+        </div>
+        <button class="copy-btn" onclick="copySummary()">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+
+      <div class="action-buttons">
+        <button class="action-btn btn-primary" onclick="downloadTXT()">
+          <i class="fas fa-download"></i>
+          Download TXT
+        </button>
+        <button class="action-btn btn-secondary" onclick="shareSummary()">
+          <i class="fas fa-share"></i>
+          Share
+        </button>
+        <button class="action-btn btn-secondary" onclick="clearAll()">
+          <i class="fas fa-trash"></i>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Made By Devam Shah • Supports multiple formats</p>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentSummary = '';
+    let currentStats = {};
+    
+    // DOM elements
+    const inputType = document.getElementById("input-type");
+    const inputField = document.getElementById("input-field");
+    const submitBtn = document.getElementById("submit-btn");
+    const outputSection = document.getElementById("output-section");
+    const summaryOutput = document.getElementById("summary-output");
+    const statsContainer = document.getElementById("stats-container");
+    const progressBar = document.getElementById("progress");
+    const alertDiv = document.getElementById("alert");
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      updateInputField();
+      setupFormValidation();
+    });
+
+    // Update input field based on selected type
+    function updateInputField() {
+      const type = inputType.value;
+      inputField.innerHTML = "";
+
+      if (type === "file") {
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.id = "input-value";
+        fileInput.accept = ".pdf,.doc,.docx,.txt";
+        fileInput.addEventListener('change', validateFile);
+        
+        const label = document.createElement("label");
+        label.className = "form-label";
+        label.innerHTML = '<i class="fas fa-upload"></i> Upload Document';
+        
+        inputField.appendChild(label);
+        inputField.appendChild(fileInput);
+      } else {
+        const label = document.createElement("label");
+        label.className = "form-label";
+        
+        const textInput = document.createElement("input");
+        textInput.type = "text";
+        textInput.id = "input-value";
+        
+        if (type === "website") {
+          label.innerHTML = '<i class="fas fa-globe"></i> Website URL';
+          textInput.placeholder = "https://example.com/article";
+        } else {
+          label.innerHTML = '<i class="fas fa-video"></i> YouTube URL';
+          textInput.placeholder = "https://youtube.com/watch?v=...";
+        }
+        
+        textInput.addEventListener('input', validateInput);
+        inputField.appendChild(label);
+        inputField.appendChild(textInput);
+      }
+    }
+
+    // Validate file selection
+    function validateFile(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const fileSize = file.size / (1024 * 1024); // MB
+        if (fileSize > 10) {
+          showAlert('warning', 'File size is large. Processing may take longer.');
+        }
+        
+        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+        if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|docx|txt)$/i)) {
+          showAlert('error', 'Please select a valid PDF, DOCX, or TXT file.');
+          event.target.value = '';
+        }
+      }
+    }
+
+    // Validate URL input
+    function validateInput(event) {
+      const value = event.target.value;
+      const type = inputType.value;
+      
+      if (value) {
+        if (type === 'website') {
+          if (!isValidURL(value)) {
+            event.target.style.borderColor = 'var(--error-color)';
+          } else {
+            event.target.style.borderColor = 'var(--success-color)';
+          }
+        } else if (type === 'youtube') {
+          if (!isValidYouTubeURL(value)) {
+            event.target.style.borderColor = 'var(--error-color)';
+          } else {
+            event.target.style.borderColor = 'var(--success-color)';
+          }
+        }
+      } else {
+        event.target.style.borderColor = 'var(--border-color)';
+      }
+    }
+
+    // Setup form validation
+    function setupFormValidation() {
+      const form = document.getElementById('summaryForm');
+      form.addEventListener('submit', handleSubmit);
+    }
+
+    // Handle form submission
+    async function handleSubmit(event) {
+      event.preventDefault();
+      
+      const type = inputType.value;
+      const inputValue = document.getElementById("input-value");
+      const summaryLength = document.getElementById("summary-length").value;
+
+      // Validation
+      if ((type === "website" || type === "youtube") && !inputValue.value.trim()) {
+        showAlert('error', 'Please enter a valid URL.');
+        return;
+      }
+      
+      if (type === "file" && (!inputValue.files || inputValue.files.length === 0)) {
+        showAlert('error', 'Please select a file to upload.');
+        return;
+      }
+
+      // Additional validation for URLs
+      if (type === "website" && !isValidURL(inputValue.value)) {
+        showAlert('error', 'Please enter a valid website URL.');
+        return;
+      }
+      
+      if (type === "youtube" && !isValidYouTubeURL(inputValue.value)) {
+        showAlert('error', 'Please enter a valid YouTube URL.');
+        return;
+      }
+
+      // Start processing
+      showProgress();
+      setLoading(true);
+
+      try {
+        // Simulate API call (replace with actual backend integration)
+        const result = await simulateSummarization(type, inputValue, summaryLength);
+        
+        if (result.success) {
+          displayResults(result.summary, result.stats);
+          showAlert('success', 'Summary generated successfully!');
+        } else {
+          throw new Error(result.error || 'Failed to generate summary');
+        }
+      } catch (error) {
+        showAlert('error', error.message);
+      } finally {
+        hideProgress();
+        setLoading(false);
+      }
+    }
+
+    // Simulate summarization (replace with actual API call)
+    async function simulateSummarization(type, inputValue, summaryLength) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          // Mock response based on length selection
+          const mockSummaries = {
+            short: "This is a short summary demonstrating the summarization functionality. The content has been condensed to highlight the key points while maintaining readability and coherence.",
+            medium: "This is a medium-length summary that provides more detailed information about the content. It includes additional context and explanations while still being significantly shorter than the original text. The summary maintains the essential meaning and important details that readers need to understand the main concepts discussed in the source material.",
+            long: "This is a comprehensive long-form summary that provides extensive coverage of the original content. It includes detailed explanations, context, and multiple key points that were present in the source material. The summary maintains nuanced information and provides readers with a thorough understanding of the topic without requiring them to read the entire original document. This length is ideal for complex topics that require more detailed explanation to be properly understood, while still offering significant time savings compared to reading the full source content."
+          };
+
+          const mockStats = {
+            originalWords: type === 'file' ? 1500 : (type === 'youtube' ? 2800 : 1200),
+            summaryWords: summaryLength === 'short' ? 85 : (summaryLength === 'medium' ? 180 : 380),
+            compressionRatio: summaryLength === 'short' ? 94.3 : (summaryLength === 'medium' ? 85.0 : 74.7),
+            readingTime: summaryLength === 'short' ? 1 : (summaryLength === 'medium' ? 1 : 2)
+          };
+
+          resolve({
+            success: true,
+            summary: mockSummaries[summaryLength],
+            stats: mockStats
+          });
+        }, 2500); // Simulate processing time
+      });
+    }
+
+    // Display results
+    function displayResults(summary, stats) {
+      currentSummary = summary;
+      currentStats = stats;
+      
+      // Update summary output
+      summaryOutput.textContent = summary;
+      
+      // Update stats
+      statsContainer.innerHTML = `
+        <div class="stat-card">
+          <div class="stat-value">${stats.originalWords}</div>
+          <div class="stat-label">Original Words</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.summaryWords}</div>
+          <div class="stat-label">Summary Words</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.compressionRatio}%</div>
+          <div class="stat-label">Compression</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${stats.readingTime}min</div>
+          <div class="stat-label">Reading Time</div>
+        </div>
+      `;
+      
+      // Show output section
+      outputSection.classList.add('show');
+      
+      // Scroll to results
+      outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Utility functions
+    function isValidURL(string) {
+      try {
+        new URL(string.startsWith('http') ? string : 'https://' + string);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function isValidYouTubeURL(string) {
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w-]+/;
+      return youtubeRegex.test(string);
+    }
+
+    function showAlert(type, message) {
+      alertDiv.className = `alert alert-${type} show`;
+      alertDiv.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i> ${message}`;
+      
+      setTimeout(() => {
+        alertDiv.classList.remove('show');
+      }, 5000);
+    }
+
+    function showProgress() {
+      progressBar.classList.add('show');
+    }
+
+    function hideProgress() {
+      setTimeout(() => {
+        progressBar.classList.remove('show');
+      }, 500);
+    }
+
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      const icon = submitBtn.querySelector('i');
+      if (loading) {
+        icon.className = 'fas fa-spinner loading';
+        submitBtn.innerHTML = '<i class="fas fa-spinner loading"></i> Processing...';
+      } else {
+        icon.className = 'fas fa-magic';
+        submitBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Summary';
+      }
+    }
+
+    // Action functions
+    function copySummary() {
+      if (currentSummary) {
+        navigator.clipboard.writeText(currentSummary).then(() => {
+          showAlert('success', 'Summary copied to clipboard!');
+        }).catch(() => {
+          showAlert('error', 'Failed to copy summary');
+        });
+      }
+    }
+
+    function downloadTXT() {
+      if (currentSummary) {
+        const blob = new Blob([currentSummary], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `summary_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showAlert('success', 'Summary downloaded!');
+      }
+    }
+
+    function shareSummary() {
+      if (navigator.share && currentSummary) {
+        navigator.share({
+          title: 'SummaGenie Summary',
+          text: currentSummary,
+        }).then(() => {
+          showAlert('success', 'Summary shared successfully!');
+        }).catch(() => {
+          copySummary(); // Fallback to copy
+        });
+      } else {
+        copySummary(); // Fallback to copy
+      }
+    }
+
+    function clearAll() {
+      outputSection.classList.remove('show');
+      currentSummary = '';
+      currentStats = {};
+      document.getElementById('summaryForm').reset();
+      updateInputField();
+      showAlert('success', 'Cleared successfully!');
+    }
+
+    // Event listeners
+    inputType.addEventListener("change", updateInputField);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+          case 'Enter':
+            e.preventDefault();
+            document.getElementById('summaryForm').dispatchEvent(new Event('submit'));
+            break;
+          case 'c':
+            if (currentSummary) {
+              e.preventDefault();
+              copySummary();
+            }
+            break;
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

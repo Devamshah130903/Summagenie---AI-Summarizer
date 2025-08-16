@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Summarization Tool</title>
+    <style>
+      /* Basic styling for clarity */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      #input-section {
+        margin-bottom: 20px;
+      }
+      #summary {
+        margin-top: 20px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Summarization Tool</h1>
+    <div id="input-section">
+      <label for="input-type">Choose input type:</label>
+      <select id="input-type">
+        <option value="website">Website URL</option>
+        <option value="youtube">YouTube Link</option>
+        <option value="file">Text File</option>
+      </select>
+      <div id="input-field">
+        <!-- Input field will be inserted here based on selection -->
+      </div>
+      <button id="submit-btn">Summarize</button>
+    </div>
+    <div id="summary">
+      <!-- Summary will be displayed here -->
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const inputType = document.getElementById("input-type");
+        const inputField = document.getElementById("input-field");
+        const submitBtn = document.getElementById("submit-btn");
+        const summaryDiv = document.getElementById("summary");
+
+        function updateInputField() {
+          const type = inputType.value;
+          inputField.innerHTML = "";
+          if (type === "file") {
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.id = "input-value";
+            inputField.appendChild(fileInput);
+          } else {
+            const textInput = document.createElement("input");
+            textInput.type = "text";
+            textInput.id = "input-value";
+            textInput.placeholder =
+              type === "website" ? "Enter website URL" : "Enter YouTube link";
+            inputField.appendChild(textInput);
+          }
+        }
+
+        inputType.addEventListener("change", updateInputField);
+        updateInputField(); // Initialize the input field
+
+        submitBtn.addEventListener("click", function () {
+          const type = inputType.value;
+          const inputValue = document.getElementById("input-value");
+
+          if ((type === "website" || type === "youtube") && !inputValue.value) {
+            alert("Please enter a valid input.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("input_type", type);
+          if (type === "file") {
+            if (inputValue.files.length === 0) {
+              alert("Please select a file.");
+              return;
+            }
+            formData.append("file", inputValue.files[0]);
+          } else {
+            formData.append("input_value", inputValue.value);
+          }
+
+          fetch("/summarize/", {
+            method: "POST",
+            body: formData,
+            headers: {
+              "X-CSRFToken": "{{ csrf_token }}",
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.error) {
+                summaryDiv.textContent = "Error: " + data.error;
+              } else {
+                summaryDiv.textContent = "Summary: " + data.summary;
+              }
+            })
+            .catch((error) => {
+              summaryDiv.textContent = "An error occurred.";
+            });
+        });
+      });
+    </script>
+  </body>
+</html>
